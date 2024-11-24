@@ -238,3 +238,141 @@ The **Born2beroot** project is an introduction to server setup, focusing on the 
      ```
 
 ---
+
+
+# Born2beroot - Virtual Machine Setup and Configuration
+
+## Project Overview
+
+In this project, a virtual machine (VM) environment was set up with the following primary goals:
+- Installing and configuring a Debian-based virtual machine (VM) with essential security settings.
+- Configuring user management, sudo privileges, and SSH access.
+- Applying password policies, firewall settings, and monitoring scripts to ensure a secure, functional environment.
+
+## Virtual Machine Setup
+
+### VM Specifications:
+- **VM Name**: Born2beroot
+- **Username and Password**: Default set at the time of VM installation.
+- **Hardware Configuration**:
+  - **Base Memory**: 1024MB
+  - **CPUs**: 4
+  - **Hard Disk**: 8GB
+- **Hostname**: `jonathro42`
+
+### Operating System:
+The chosen operating system is **Debian** due to its stability, security, and ease of use. Debian is known for being a solid foundation for both servers and desktops.
+
+### Differences Between Debian and Rocky Linux:
+- **Debian** is community-driven, general-purpose, and known for its flexibility and stability. It works well in both desktop and server environments.
+- **Rocky Linux** is designed as an enterprise-class OS, offering binary compatibility with Red Hat Enterprise Linux (RHEL), focusing on long-term stability and enterprise support.
+
+## Benefits of Virtual Machines
+Virtual machines provide isolation, allowing multiple operating systems to run on a single physical machine. This environment:
+- Provides enhanced security.
+- Offers the ability to run and test different OS configurations.
+- Allows for controlled environments to test software without affecting the host system.
+
+## Configuration
+
+### 1. System Configuration
+
+1. **Verify VM Has No Graphical Environment at Startup**:
+   - Command: `systemctl get-default` (should return `multi-user.target`)
+
+2. **Password Request Upon Connection**:
+   - Ensure the system requests a password before allowing connections.
+
+3. **Login as Non-Root User**:
+   - User `jonathro` has been created with `sudo` and `user42` group membership.
+
+4. **Verify Sudo Installation**:
+   - Command: `which sudo`
+
+5. **Verify UFW (Firewall) Status**:
+   - Command: `sudo ufw status`
+
+6. **SSH Service Status**:
+   - Command: `sudo service ssh status`
+
+7. **Change Hostname**:
+   - Command to change hostname: `sudo hostnamectl set-hostname jonathro42`
+   - After reboot, verify the hostname change with `hostname`.
+
+8. **Display Partitions**:
+   - Command: `lsblk`
+
+### 2. User Management
+
+1. **Create a New User**:
+   - Command: `sudo adduser nome_usuario`
+   - Assign a password respecting the password policy.
+
+2. **Assign User to Groups**:
+   - Command to create `evaluating` group: `sudo addgroup evaluating`
+   - Command to add the user to the `evaluating` group: `sudo usermod -aG evaluating nome_usuario`
+
+3. **Verify User's Groups**:
+   - Command: `groups nome_usuario`
+
+### 3. Sudo Configuration
+
+1. **Verify Sudo Installation**:
+   - Command: `which sudo`
+
+2. **Add User to the `sudo` Group**:
+   - Command: `sudo usermod -aG sudo nome_usuario`
+
+3. **Sudo Log Configuration**:
+   - Create a directory for sudo logs: `sudo mkdir /var/log/sudo`
+   - Configure the sudoers file: `sudo visudo`
+     - Set options like `passwd_tries=3` and `logfile="/var/log/sudo/sudo_config"`
+   
+4. **Verify Sudo Logs**:
+   - Command: `sudo cat /var/log/sudo/sudo_log`
+
+### 4. UFW / Firewall Configuration
+
+1. **Install and Check UFW**:
+   - Command: `sudo ufw status`
+
+2. **Add Firewall Rules**:
+   - Open port `4242`: `sudo ufw allow 4242`
+   - Add new rule for port `8080`: `sudo ufw allow 8080`
+   - Delete the port 8080 rule: `sudo ufw delete allow 8080`
+
+### 5. SSH Configuration
+
+1. **Install and Verify SSH Service**:
+   - Command: `sudo service ssh status`
+
+2. **SSH Configuration**:
+   - Edit the SSH configuration file to change the port to `4242`:
+     - `sudo vim /etc/ssh/sshd_config` and update `Port` and `PermitRootLogin` settings.
+   - Restart SSH service: `sudo service ssh restart`
+
+3. **Verify SSH Connectivity**:
+   - SSH into the VM using `ssh jonathro@192.168.1.251 -p 4242`
+
+### 6. Script Monitoring Setup
+
+1. **Create a Monitoring Script**:
+   - Path: `/usr/local/bin/monitoring.sh`
+   - The script collects system information like CPU usage, memory, disk, and network status, and displays it on the terminal every 10 minutes.
+
+2. **Ensure Cron Job Runs**:
+   - Add a cron job to execute the monitoring script every 10 minutes at boot: `sudo crontab -e`
+   - Example entry: `@reboot sleep 600 && while true; do /usr/local/bin/monitoring.sh; sleep 600; done`
+
+3. **Disable Cron After Script Setup**:
+   - To stop the cron job from running after the system restart: `sudo systemctl stop cron` and `sudo systemctl disable cron`.
+
+### 7. Conclusion
+
+This setup covers:
+- A secure and controlled environment using Debian as the chosen operating system.
+- Proper user management, sudo privileges, and group assignments.
+- Firewall setup with UFW and SSH service management.
+- Monitoring system performance using a custom shell script executed via cron.
+
+By completing these steps, the system is well-configured, secure, and ready for various tasks, including remote management and monitoring.
